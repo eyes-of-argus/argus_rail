@@ -32,3 +32,6 @@ devel_isolated/
 *.cfgc
 /cfg/cpp/
 /cfg/*.py
+
+# VS Code
+ipch/
