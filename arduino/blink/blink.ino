@@ -4,16 +4,16 @@
  */
 
 #include <ros.h>
-#include <std_msgs/Bool.h>
+#include <argus_rail/RailStatus.h>
 
 ros::NodeHandle  nh;
 
-void messageCb( const std_msgs::Bool& led_status){
-  if(led_status.data == true) digitalWrite(13, HIGH);
-  else if(led_status.data == false) digitalWrite(13, LOW);
+void messageCb( const argus_rail::RailStatus& rail_status){
+  if(rail_status.moving == true) digitalWrite(13, HIGH);
+  else if(rail_status.moving == false) digitalWrite(13, LOW);
 }
 
-ros::Subscriber<std_msgs::Bool> sub("/arduino/led", &messageCb );
+ros::Subscriber<argus_rail::RailStatus> sub("/rail_status", &messageCb );
 
 void setup()
 { 

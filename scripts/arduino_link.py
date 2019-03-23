@@ -1,17 +1,19 @@
 #!/usr/bin/env python
 
 import rospy
-from std_msgs.msg import Bool
+from argus_rail.msg import RailStatus
 
 def send():
-    pub = rospy.Publisher('/arduino/led', Bool, queue_size=5)
-    rospy.init_node('arduino_send', anonymous=False)
+    pub = rospy.Publisher('/rail_status', RailStatus, queue_size=5)
+    rospy.init_node('rail', anonymous=False)
     rate = rospy.Rate(1) # 1Hz
-    led_status = False
+    rail = RailStatus()
+    rail.moving = False
+    rail.baseline = 1
     while not rospy.is_shutdown():
-        led_status = not led_status
-        rospy.loginfo(led_status)
-        pub.publish(led_status)
+        rail.moving = not rail.moving
+        rospy.loginfo(rail)
+        pub.publish(rail)
         rate.sleep()
 
 if __name__ == '__main__':
