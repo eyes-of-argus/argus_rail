@@ -51,16 +51,14 @@
       // higher value is slower, unit in us
       _pulse_length = pulse_length;
     }
-    bool sendPulse(void)
+    void sendPulse(void)
     {
       // sends one full pulse with selected delay
       // blocking function, will take _pulse_delay*2 to return
-      if(!_enabled) return false;
       digitalWrite(_pulse_pin, HIGH);
       delayMicroseconds(_pulse_length);
       digitalWrite(_pulse_pin, LOW);
       delayMicroseconds(_pulse_length);
-      return true;
     }
     void enable(void)
     {
@@ -72,7 +70,11 @@
     {
       _enabled = LOW;
       digitalWrite(_enable_pin, _enabled);
-      delayMicroseconds(5);
+      delayMicroseconds(5);  
+    }
+    bool isEnabled(void)
+    {
+      return _enabled;
     }
     void setPosition(uint8_t position)
     {
@@ -89,24 +91,39 @@
     uint8_t _current_position = 3;
  };
 
-ArgusStepper Left(6, 5, 4);
+ArgusStepper Right(10, 9, 8);
+ArgusStepper Left (6, 5, 4);
 
 void setup() {
+  Right.begin();
+  Right.setSpeed(30);
+  Right.setDirection(INWARD);
+  Right.enable();
+
   Left.begin();
-  Serial.begin(9600);
+  Left.setSpeed(30);
+  Left.setDirection(INWARD);
+  Left.enable();
+
+  pinMode(3, INPUT_PULLUP);
 }
 
 void loop() {
-  Left.setSpeed(50);
-  Left.setDirection(INWARD);
-  Left.enable();
-  
-  // move from baseline 3 to 1
-  for(int i = 0; i < 5000; ++i)
+  static long count = 0;
+
+  if(!digitalRead(3))
   {
-    Left.sendPulse();
-    Serial.println(i);
-  }
+    if(Left.isEnabled() && Right.isEnabled())
+    {
+      Left.sendPulse();
+      Right.sendPulse();
+    }
   
-  while(1);
+    if(count++ > 15275) 
+    {
+      Left.reverseDirection();
+      Right.reverseDirection();
+      count = 0;
+    } 
+  }
 }
