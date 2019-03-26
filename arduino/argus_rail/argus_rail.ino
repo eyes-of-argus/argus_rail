@@ -17,7 +17,7 @@
 
 #include <ros.h>
 #include <argus_rail/RailStatus.h>
-#include <std_msgs/UInt8.h>
+#include <argus_rail/RailCommand.h>
 
 #include "argus_stepper.h"
 
@@ -27,7 +27,7 @@ ArgusStepper Left (6, 5, 4);
 ros::NodeHandle nh;
 
 argus_rail::RailStatus rail_status;
-ros::Publisher rail("/rail_status", &rail_status);
+ros::Publisher rail_pub("/rail_status", &rail_status);
 
 // RailStatus message variables
 // header: uint32 seq, time stamp, string frame_id
@@ -37,12 +37,12 @@ bool moving = false;
 
 uint8_t requested_baseline = current_baseline;
 
-void railCommandCb(const std_msgs::UInt8& req_baseline)
+void railCommandCb(const argus_rail::RailCommand& rail_command)
 {
-  requested_baseline = req_baseline.data;
+  requested_baseline = rail_command.requested_baseline;
 }
 
-ros::Subscriber<std_msgs::UInt8> rail_command("/rail_command", &railCommandCb);
+ros::Subscriber<argus_rail::RailCommand> rail_sub("/rail_command", &railCommandCb);
 
 void setup() {
   Right.begin();
@@ -56,24 +56,31 @@ void setup() {
   Left.setPosition(3);
 
   nh.initNode();
-  nh.subscribe(rail_command);
-  nh.advertise(rail);
+  nh.subscribe(rail_sub);
+  nh.advertise(rail_pub);
 }
 
 void loop() {
 
   if(requested_baseline != current_baseline)
   {
+    rail_status.baseline = current_baseline;
+    rail_status.moving = true;
+    rail_status.header.frame_id = frame_id;
+    rail_status.header.stamp = nh.now();
+    rail_pub.publish(&rail_status);
+    
     requestBaseline(Left, Right, requested_baseline, current_baseline);
     current_baseline = requested_baseline;
   }
   
   rail_status.baseline = current_baseline;
-  rail_status.moving = (current_baseline != requested_baseline);
-  //rail_status.steps_to_baseline = steps_to_baseline;
+  rail_status.moving = false;
   rail_status.header.frame_id = frame_id;
   rail_status.header.stamp = nh.now();
-  rail.publish(&rail_status);
+  
+  rail_pub.publish(&rail_status);
+  
   nh.spinOnce();
-  delay(50); // 20 hz
+  delay(10); // 100 hz
 }
