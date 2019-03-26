@@ -1,26 +1,28 @@
 #!/usr/bin/env python
 
 import rospy
-from std_msgs.msg import UInt8
+from argus_rail.msg import RailCommand
 
 def send():
-    pub = rospy.Publisher('/rail_command', UInt8, queue_size=1)
+    pub = rospy.Publisher('/rail_command', RailCommand, queue_size=1)
     rospy.init_node('rail', anonymous=False)
     rate = rospy.Rate(1)  # 1Hz
-    rail_command = UInt8()
-    rail_command.data = 3
-    baseline = 3
-    run_count = 0
+
+    rail_command = RailCommand()
+    rail_command.requested_baseline = 3
+    direction = True # True = inward, False = outward
+
     while not rospy.is_shutdown():
-        if(run_count > 0):
-            baseline = rail_command.data
-            baseline -= 1
-            if(baseline < 1):
-                baseline = 3
-            rail_command.data = baseline
-            run_count -= 1
-        else:
-            run_count = input()
+        if(direction == True):
+            rail_command.requested_baseline -= 1
+            if(rail_command.requested_baseline < 1):
+                direction = not direction
+                rail_command.requested_baseline = 2
+        elif(direction == False):
+            rail_command.requested_baseline += 1
+            if(rail_command.requested_baseline > 3):
+                direction = not direction
+                rail_command.requested_baseline = 2
 
         rospy.loginfo(rail_command)
         pub.publish(rail_command)
