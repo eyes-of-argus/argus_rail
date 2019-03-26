@@ -123,9 +123,7 @@ void loop() {
 
 void move(int steps, bool direction, int speed)
 {
-  // enable stepper and set direction
-//  digitalWrite(ENABLE_PIN, HIGH);
-//  delayMicroseconds(10);
+  // set direction
   digitalWrite(DIR_PIN, direction);
   delayMicroseconds(10);
 
@@ -138,8 +136,4 @@ void move(int steps, bool direction, int speed)
     delayMicroseconds(speed);
     steps--;
   }
-
-  // Disable stepper
-//  digitalWrite(ENABLE_PIN, LOW);
-//  delayMicroseconds(10);
 }
