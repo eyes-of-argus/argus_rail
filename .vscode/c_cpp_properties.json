@@ -1,19 +1,33 @@
 {
     "configurations": [
         {
+            "defines": [
+                "ARDUINO = 100"
+            ],
             "browse": {
                 "databaseFilename": "",
                 "limitSymbolsToIncludedHeaders": true
             },
             "includePath": [
+                "/home/argus/arduino-1.8.9/tools/**",
+                "/home/argus/arduino-1.8.9/hardware/arduino/avr/**",
                 "/opt/ros/kinetic/include",
-                "/usr/include"
+                "/usr/include",
+                "~/Arduino/libraries/ros_lib",
+                "${config:arduino.path}/hardware/tools/avr/avr/include",
+                "~/arduino-1.8.9/hardware/arduino/avr/cores/arduino",
+                "~/arduino-1.8.9/hardware/arduino/avr/libraries/EEPROM/src",
+                "~/arduino-1.8.9/hardware/tools/avr/lib/gcc/avr/4.9.2/include",
+                "~/arduino-1.8.9/hardware/tools/avr/lib/gcc/avr/4.9.2/include-fixed"
             ],
             "name": "Linux",
             "intelliSenseMode": "gcc-x64",
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "c11",
-            "cppStandard": "c++17"
+            "cppStandard": "c++17",
+            "forcedInclude": [
+                "/home/argus/arduino-1.8.9/hardware/arduino/avr/cores/arduino/Arduino.h"
+            ]
         }
     ],
     "version": 4
