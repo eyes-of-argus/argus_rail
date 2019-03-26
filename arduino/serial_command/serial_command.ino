@@ -4,11 +4,22 @@
 #define DIR_PIN     9
 #define ENABLE_PIN  8
 
+#define HALF_MOVE   15275
+#define FULL_MOVE   30550
+
+#define INWARD      HIGH
+#define OUTWARD     LOW
+
+#define STEP_SPEED  25
+
+uint8_t current_position = 3;
+uint8_t requested_position = current_position;
+
 int speed_delay = 25;
 long step_count = 15275;
 bool dir = HIGH;    // inward
 bool enable = HIGH;  // enabled
-uint8_t position = 3;
+
 
 void setup() {
   Serial.begin(115200);
@@ -20,89 +31,115 @@ void setup() {
   delayMicroseconds(10);
   digitalWrite(DIR_PIN, dir);
   delayMicroseconds(10);
+
+  Serial.print("Initialized... Beginning position assume: ");
+  Serial.println(current_position);
 }
 
 void loop() {
-  // Read step count from Serial
-  /*
+  
+  // Handle Serial
   if (Serial.available())
   {
-    step_count = Serial.parseInt();
-    
-    // check for negative (dir change)
-    if(step_count != 0)
-    {
-      // negative value
-      if(step_count < 0)
-      {
-        // reverse direction
-        dir = LOW;
-        step_count = abs(step_count);
-      }
-      else
-      {
-        dir = HIGH;
-      }
-      
-      digitalWrite(DIR_PIN, dir);
-      delayMicroseconds(10);
+    requested_position = Serial.parseInt();
 
-      Serial.print("Dir: "); Serial.print(dir);
-      Serial.print("\tStep: "); Serial.println(step_count);
+    // returns 0 if error or no int found
+    if(requested_position == 0)
+    {
+      requested_position = current_position;
+      Serial.println("ERROR: Could not parse int");
     }
     else
     {
-      Serial.println("Error: Couldn't parse int");
+      Serial.print("Current: "); Serial.print(current_position);
+      Serial.print("\tRequested: "); Serial.println(requested_position);
     }
 
     // Clear serial input buffer
     Serial.end();
     Serial.begin(115200);
   }
-  */
 
-  // 3 to 2
-  for(int i = 0; i < 15275; ++i)
+  // Handle requested move
+  if(requested_position == 3)
   {
-    digitalWrite(PULSE_PIN, HIGH);
-    delayMicroseconds(speed_delay);
-    digitalWrite(PULSE_PIN, LOW);
-    delayMicroseconds(speed_delay);
+    if(current_position == 3)
+    {
+      // do nothing
+    }
+    else if(current_position == 2)
+    {
+      // 2 TO 3
+      move(HALF_MOVE, OUTWARD, STEP_SPEED);
+      current_position = 3;
+    }
+    else if(current_position == 1)
+    {
+      // 1 TO 3
+      move(FULL_MOVE, OUTWARD, STEP_SPEED);
+      current_position = 3;
+    }
   }
-  delay(500);
-  
-  // 2 to 1
-  for(int i = 0; i < 15275; ++i)
+  else if(requested_position == 2)
   {
-    digitalWrite(PULSE_PIN, HIGH);
-    delayMicroseconds(speed_delay);
-    digitalWrite(PULSE_PIN, LOW);
-    delayMicroseconds(speed_delay);
+    if(current_position == 2)
+    {
+      // do nothing
+    }
+    else if(current_position == 3)
+    {
+      // 3 TO 2
+      move(HALF_MOVE, INWARD, STEP_SPEED);
+      current_position = 2;
+    }
+    else if(current_position == 1)
+    {
+      // 1 TO 2
+      move(HALF_MOVE, OUTWARD, STEP_SPEED);
+      current_position = 2;
+    }
   }
-  delay(500);
-  
-  digitalWrite(DIR_PIN, LOW);   // reverse direction
-  
-  // 1 to 2
-  for(int i = 0; i < 15275; ++i)
+  else if(requested_position == 1)
   {
-    digitalWrite(PULSE_PIN, HIGH);
-    delayMicroseconds(speed_delay);
-    digitalWrite(PULSE_PIN, LOW);
-    delayMicroseconds(speed_delay);
+    if(current_position == 1)
+    {
+      // do nothing
+    }
+    else if(current_position == 3)
+    {
+      // 3 TO 1
+      move(FULL_MOVE, INWARD, STEP_SPEED);
+      current_position = 1;
+    }
+    else if(current_position == 2)
+    {
+      // 2 TO 1
+      move(HALF_MOVE, INWARD, STEP_SPEED);
+      current_position = 1;
+    }
   }
-  delay(500);
-  
-  // 2 to 1
-  for(int i = 0; i < 15275; ++i)
-  {
-    digitalWrite(PULSE_PIN, HIGH);
-    delayMicroseconds(speed_delay);
-    digitalWrite(PULSE_PIN, LOW);
-    delayMicroseconds(speed_delay);
-  }
-  delay(500);
 
-  digitalWrite(DIR_PIN, HIGH);   // reverse direction
+}
 
+void move(int steps, bool direction, int speed)
+{
+  // enable stepper and set direction
+//  digitalWrite(ENABLE_PIN, HIGH);
+//  delayMicroseconds(10);
+  digitalWrite(DIR_PIN, direction);
+  delayMicroseconds(10);
+
+  // move number of steps
+  while(steps > 0)
+  {
+    digitalWrite(PULSE_PIN, HIGH);
+    delayMicroseconds(speed);
+    digitalWrite(PULSE_PIN, LOW);
+    delayMicroseconds(speed);
+    steps--;
+  }
+
+  // Disable stepper
+//  digitalWrite(ENABLE_PIN, LOW);
+//  delayMicroseconds(10);
 }
