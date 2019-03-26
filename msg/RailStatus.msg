@@ -9,3 +9,6 @@ bool moving
 # Distance setting between cameras
 # 1: short, 2: medium, 3: long
 uint8 baseline
+
+# Number of steps to travel
+int32 steps_to_baseline
