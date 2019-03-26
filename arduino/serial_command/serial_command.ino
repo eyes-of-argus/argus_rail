@@ -15,11 +15,18 @@
 uint8_t current_position = 3;
 uint8_t requested_position = current_position;
 
-int speed_delay = 25;
-long step_count = 15275;
 bool dir = HIGH;    // inward
 bool enable = HIGH;  // enabled
 
+enum Moves {
+  STAY     = 0,
+  FROM3TO2 = 1,
+  FROM3TO1 = 2,
+  FROM2TO3 = -1,
+  FROM2TO1 = 1,
+  FROM1TO3 = -2,
+  FROM1TO2 = -1
+};
 
 void setup() {
   Serial.begin(115200);
@@ -37,6 +44,8 @@ void setup() {
 }
 
 void loop() {
+
+  static Moves requested_move;
   
   // Handle Serial
   if (Serial.available())
@@ -61,64 +70,25 @@ void loop() {
   }
 
   // Handle requested move
-  if(requested_position == 3)
+  if(requested_position != current_position)
   {
-    if(current_position == 3)
+    if(requested_position == 3)
     {
-      // do nothing
+      if(current_position == 2) requested_move = FROM2TO3;
+      else if(current_position == 1) requested_move = FROM1TO3;
     }
-    else if(current_position == 2)
+    else if(requested_position == 2)
     {
-      // 2 TO 3
-      move(HALF_MOVE, OUTWARD, STEP_SPEED);
-      current_position = 3;
+      if(current_position == 3) requested_move = FROM3TO2;
+      else if(current_position == 1) requested_move = FROM1TO2;
     }
-    else if(current_position == 1)
+    else if(requested_position == 1)
     {
-      // 1 TO 3
-      move(FULL_MOVE, OUTWARD, STEP_SPEED);
-      current_position = 3;
+      if(current_position == 3) requested_move = FROM3TO1;
+      else if(current_position == 2) requested_move = FROM2TO1;
     }
+    moveToPos(requested_move);
   }
-  else if(requested_position == 2)
-  {
-    if(current_position == 2)
-    {
-      // do nothing
-    }
-    else if(current_position == 3)
-    {
-      // 3 TO 2
-      move(HALF_MOVE, INWARD, STEP_SPEED);
-      current_position = 2;
-    }
-    else if(current_position == 1)
-    {
-      // 1 TO 2
-      move(HALF_MOVE, OUTWARD, STEP_SPEED);
-      current_position = 2;
-    }
-  }
-  else if(requested_position == 1)
-  {
-    if(current_position == 1)
-    {
-      // do nothing
-    }
-    else if(current_position == 3)
-    {
-      // 3 TO 1
-      move(FULL_MOVE, INWARD, STEP_SPEED);
-      current_position = 1;
-    }
-    else if(current_position == 2)
-    {
-      // 2 TO 1
-      move(HALF_MOVE, INWARD, STEP_SPEED);
-      current_position = 1;
-    }
-  }
-
 }
 
 void move(int steps, bool direction, int speed)
@@ -135,5 +105,36 @@ void move(int steps, bool direction, int speed)
     digitalWrite(PULSE_PIN, LOW);
     delayMicroseconds(speed);
     steps--;
+  }
+}
+
+void moveToPos(Moves requested_move)
+{
+  switch(requested_move)
+  {
+    case FROM3TO2:
+      move(HALF_MOVE, INWARD, STEP_SPEED);
+      current_position = 2;
+      break;
+    case FROM3TO1:
+      move(FULL_MOVE, INWARD, STEP_SPEED);
+      current_position = 1;
+      break;
+    case FROM2TO3:
+      move(HALF_MOVE, OUTWARD, STEP_SPEED);
+      current_position = 3;
+      break;
+    case FROM2TO1:
+      move(HALF_MOVE, INWARD, STEP_SPEED);
+      current_position = 1;
+      break;
+    case FROM1TO3:
+      move(FULL_MOVE, OUTWARD, STEP_SPEED);
+      current_position = 3;
+      break;
+    case FROM1TO2:
+      move(HALF_MOVE, OUTWARD, STEP_SPEED);
+      current_position = 2;
+      break;
   }
 }
