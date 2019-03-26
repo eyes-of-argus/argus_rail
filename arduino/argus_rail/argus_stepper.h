@@ -46,6 +46,10 @@ public:
     // higher value is slower, unit in us
     _pulse_length = pulse_length;
   }
+  int getSpeed(void)
+  {
+    return _pulse_length;
+  }
   void sendPulse(void)
   {
     // sends one full pulse with selected delay
@@ -111,6 +115,7 @@ public:
       this->moveToPos();
     }
   }
+  friend void moveSteppers(ArgusStepper& Left, ArgusStepper& Right, int steps, bool direction, int speed);
 private:
   uint8_t _pulse_pin, _direction_pin, _enable_pin;
   bool _enabled = LOW, _direction = LOW;
@@ -164,5 +169,70 @@ private:
     }
   }
 };
+
+void moveSteppers(ArgusStepper& Left, ArgusStepper& Right, int steps, bool direction, int speed)
+{
+  Left.setSpeed(speed);
+  Right.setSpeed(speed);
+  Left.setDirection(direction);
+  Right.setDirection(direction);
+
+  while(steps > 0)
+  {
+    digitalWrite(Left._pulse_pin, HIGH);
+    digitalWrite(Right._pulse_pin, HIGH);
+    delayMicroseconds(speed);
+    digitalWrite(Left._pulse_pin, LOW);
+    digitalWrite(Right._pulse_pin, LOW);
+    steps--;
+  }
+}
+
+void moveToBaseline(ArgusStepper& Left, ArgusStepper& Right, Moves requested_baseline_move)
+{
+  switch(requested_baseline_move)
+  {
+    case FROM3TO2:
+      moveSteppers(Left, Right, 15275, INWARD, 25);
+      break;
+    case FROM3TO1:
+      moveSteppers(Left, Right, 30550, INWARD, 25);
+      break;
+    case FROM2TO3:
+      moveSteppers(Left, Right, 15275, OUTWARD, 25);
+      break;
+    case FROM2TO1:
+      moveSteppers(Left, Right, 15275, INWARD, 25);
+      break;
+    case FROM1TO3:
+      moveSteppers(Left, Right, 30550, OUTWARD, 25);
+      break;
+    case FROM1TO2:
+      moveSteppers(Left, Right, 15275, OUTWARD, 25);
+      break;
+  }
+}
+
+void requestBaseline(ArgusStepper& Left, ArgusStepper& Right, uint8_t requested_baseline, uint8_t current_baseline)
+{
+  if(requested_baseline != current_baseline)
+  {
+    if(requested_baseline == 3)
+    {
+      if(current_baseline == 2) moveToBaseline(Left, Right, FROM2TO3);
+      else if(current_baseline == 1) moveToBaseline(Left, Right, FROM1TO3);
+    }
+    else if(requested_baseline == 2)
+    {
+      if(current_baseline == 3) moveToBaseline(Left, Right, FROM3TO2);
+      else if(current_baseline == 1) moveToBaseline(Left, Right, FROM1TO2);
+    }
+    else if(requested_baseline == 1)
+    {
+      if(current_baseline == 3) moveToBaseline(Left, Right, FROM3TO1);
+      else if(current_baseline == 2) moveToBaseline(Left, Right, FROM2TO1);
+    }
+  }
+}
 
 #endif

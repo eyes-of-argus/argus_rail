@@ -35,17 +35,11 @@ char frame_id[] = "/rail_status";
 uint8_t current_baseline = 3;
 bool moving = false;
 
-uint8_t requested_baseline = 3
+uint8_t requested_baseline = current_baseline;
 
 void railCommandCb(const std_msgs::UInt8& req_baseline)
 {
-  
-  rail_status.baseline = current_baseline;
-  rail_status.moving = (current_baseline != requested_baseline);
-  rail_status.steps_to_baseline = steps_to_baseline;
-  rail_status.header.frame_id = frame_id;
-  rail_status.header.stamp = nh.now();
-  rail.publish(&rail_status);
+  requested_baseline = req_baseline.data;
 }
 
 ros::Subscriber<std_msgs::UInt8> rail_command("/rail_command", &railCommandCb);
@@ -67,10 +61,16 @@ void setup() {
 }
 
 void loop() {
+
+  if(requested_baseline != current_baseline)
+  {
+    requestBaseline(Left, Right, requested_baseline, current_baseline);
+    current_baseline = requested_baseline;
+  }
   
   rail_status.baseline = current_baseline;
   rail_status.moving = (current_baseline != requested_baseline);
-  rail_status.steps_to_baseline = steps_to_baseline;
+  //rail_status.steps_to_baseline = steps_to_baseline;
   rail_status.header.frame_id = frame_id;
   rail_status.header.stamp = nh.now();
   rail.publish(&rail_status);
