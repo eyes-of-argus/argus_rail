@@ -35,40 +35,10 @@ char frame_id[] = "/rail_status";
 uint8_t current_baseline = 3;
 bool moving = false;
 
-uint8_t requested_baseline = current_baseline;
-int steps_to_baseline = 0;
-
-void setMove(int steps, bool dir)
-{
-  steps_to_baseline = steps;
-  if(dir == INWARD)
-  {
-    Right.setDirection(INWARD);
-    Left.setDirection(INWARD);
-  }
-  else if(dir == OUTWARD)
-  {
-    Right.setDirection(OUTWARD);
-    Left.setDirection(OUTWARD);
-  }
-}
+uint8_t requested_baseline = 3
 
 void railCommandCb(const std_msgs::UInt8& req_baseline)
 {
-  // return if rail is already moving or at req position
-  if(steps_to_baseline > 0) return;
-  requested_baseline = req_baseline.data;
-  if(requested_baseline == current_baseline) return;
-  
-  if(current_baseline == 3 && requested_baseline == 2) setMove(15275+600, INWARD);
-  else if(current_baseline == 3 && requested_baseline == 1) setMove(30550, INWARD);
-  else if(current_baseline == 2 && requested_baseline == 3) setMove(15275, OUTWARD);
-  else if(current_baseline == 2 && requested_baseline == 1) setMove(15275, INWARD);
-  else if(current_baseline == 1 && requested_baseline == 3) setMove(30550, OUTWARD);
-  else if(current_baseline == 1 && requested_baseline == 2) setMove(15275, OUTWARD);
-  
-  Left.enable();
-  Right.enable();
   
   rail_status.baseline = current_baseline;
   rail_status.moving = (current_baseline != requested_baseline);
@@ -85,28 +55,12 @@ void setup() {
   Right.setSpeed(20);
   Right.setDirection(INWARD);
   Right.setPosition(3);
-  Right.disable();
 
   Left.begin();
   Left.setSpeed(20);
   Left.setDirection(INWARD);
   Left.setPosition(3);
-  Left.disable();
 
-/*
-  for(int i = 0; i < 30550; i++)
-  {
-    Left.sendPulse();
-    Right.sendPulse();
-  }
-  Left.reverseDirection();
-  Right.reverseDirection();
-  for(int i = 0; i < 30550; i++)
-  {
-    Left.sendPulse();
-    Right.sendPulse();
-  }
-*/
   nh.initNode();
   nh.subscribe(rail_command);
   nh.advertise(rail);
@@ -114,22 +68,6 @@ void setup() {
 
 void loop() {
   
-  while(current_baseline != requested_baseline)
-  {
-    if(steps_to_baseline > 0)
-    {
-      Left.sendPulse();
-      Right.sendPulse();
-      steps_to_baseline--;
-    }
-    else
-    {
-      current_baseline = requested_baseline;
-      Left.disable();
-      Right.disable();
-    }    
-  }
-
   rail_status.baseline = current_baseline;
   rail_status.moving = (current_baseline != requested_baseline);
   rail_status.steps_to_baseline = steps_to_baseline;
