@@ -21,6 +21,11 @@
 
 #include "argus_stepper.h"
 
+// Baseline movement is hardcoded at:
+//    FULL_MOVE  30100
+//    HALF_MOVE  15050
+//    RAIL_SPEED 25
+
 ArgusStepper Right(10, 9, 8);
 ArgusStepper Left (6, 5, 4);
 

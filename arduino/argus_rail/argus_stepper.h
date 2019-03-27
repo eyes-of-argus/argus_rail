@@ -4,6 +4,10 @@
 #define INWARD  HIGH
 #define OUTWARD LOW
 
+#define FULL_MOVE  30100   // full 0.5m rail is 30550
+#define HALF_MOVE  15050
+#define RAIL_SPEED 25      // speed is hardcoded for paired stepper movement
+
 enum Moves {
   FROM3TO2,
   FROM3TO1,
@@ -120,7 +124,7 @@ private:
   uint8_t _pulse_pin, _direction_pin, _enable_pin;
   bool _enabled = LOW, _direction = LOW;
   int _pulse_length = 100;
-  int _full_move = 30550, _half_move = (_full_move / 2);
+  int _full_move = FULL_MOVE, _half_move = (_full_move / 2);
   uint8_t _current_position = 3;
   Moves _requested_move;
 
@@ -206,22 +210,22 @@ void moveToBaseline(ArgusStepper& Left, ArgusStepper& Right, Moves requested_bas
   switch(requested_baseline_move)
   {
     case FROM3TO2:
-      moveSteppers(Left, Right, 15275, INWARD, 25);
+      moveSteppers(Left, Right, HALF_MOVE, INWARD, RAIL_SPEED);
       break;
     case FROM3TO1:
-      moveSteppers(Left, Right, 30550, INWARD, 25);
+      moveSteppers(Left, Right, FULL_MOVE, INWARD, RAIL_SPEED);
       break;
     case FROM2TO3:
-      moveSteppers(Left, Right, 15275, OUTWARD, 25);
+      moveSteppers(Left, Right, HALF_MOVE, OUTWARD, RAIL_SPEED);
       break;
     case FROM2TO1:
-      moveSteppers(Left, Right, 15275, INWARD, 25);
+      moveSteppers(Left, Right, HALF_MOVE, INWARD, RAIL_SPEED);
       break;
     case FROM1TO3:
-      moveSteppers(Left, Right, 30550, OUTWARD, 25);
+      moveSteppers(Left, Right, FULL_MOVE, OUTWARD, RAIL_SPEED);
       break;
     case FROM1TO2:
-      moveSteppers(Left, Right, 15275, OUTWARD, 25);
+      moveSteppers(Left, Right, HALF_MOVE, OUTWARD, RAIL_SPEED);
       break;
   }
 }
