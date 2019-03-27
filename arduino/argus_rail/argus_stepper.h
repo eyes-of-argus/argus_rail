@@ -188,6 +188,19 @@ void moveSteppers(ArgusStepper& Left, ArgusStepper& Right, int steps, bool direc
   }
 }
 
+void moveSteppersEnhanced(ArgusStepper& Left, ArgusStepper& Right, int steps, bool direction, int max_speed)
+{
+  moveSteppers(Left, Right, steps*0.10, direction, max_speed*3);
+  moveSteppers(Left, Right, steps*0.10, direction, max_speed*2.5);
+  moveSteppers(Left, Right, steps*0.10, direction, max_speed*2);
+  moveSteppers(Left, Right, steps*0.10, direction, max_speed*1.5);
+  moveSteppers(Left, Right, steps*0.20, direction, max_speed);
+  moveSteppers(Left, Right, steps*0.10, direction, max_speed*1.5);
+  moveSteppers(Left, Right, steps*0.10, direction, max_speed*2);
+  moveSteppers(Left, Right, steps*0.10, direction, max_speed*2.5);
+  moveSteppers(Left, Right, steps*0.10, direction, max_speed*3);
+}
+
 void moveToBaseline(ArgusStepper& Left, ArgusStepper& Right, Moves requested_baseline_move)
 {
   switch(requested_baseline_move)
