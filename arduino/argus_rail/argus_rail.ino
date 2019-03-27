@@ -26,6 +26,8 @@
 //    HALF_MOVE  15050
 //    RAIL_SPEED 25
 
+#define START_BASELINE 1
+
 ArgusStepper Right(10, 9, 8);
 ArgusStepper Left (6, 5, 4);
 
@@ -37,7 +39,7 @@ ros::Publisher rail_pub("/rail_status", &rail_status);
 // RailStatus message variables
 // header: uint32 seq, time stamp, string frame_id
 char frame_id[] = "/rail_status";
-uint8_t current_baseline = 3;
+uint8_t current_baseline = START_BASELINE;
 bool moving = false;
 
 uint8_t requested_baseline = current_baseline;
@@ -52,13 +54,19 @@ ros::Subscriber<argus_rail::RailCommand> rail_sub("/rail_command", &railCommandC
 void setup() {
   Right.begin();
   Right.setSpeed(20);
-  Right.setDirection(INWARD);
-  Right.setPosition(3);
-
   Left.begin();
   Left.setSpeed(20);
-  Left.setDirection(INWARD);
-  Left.setPosition(3);
+  
+  #if START_BASELINE == 1
+    Right.setDirection(OUTWARD);
+    Left.setDirection(OUTWARD);
+  #else
+    Right.setDirection(INWARD);
+    Left.setDirection(INWARD);
+  #endif
+    
+  Right.setPosition(START_BASELINE);
+  Left.setPosition(START_BASELINE);  
 
   nh.initNode();
   nh.subscribe(rail_sub);
